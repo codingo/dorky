@@ -32,8 +32,8 @@ An example scan would be:
    "title":"Direct Credentials",
    "description":"Find credentials against an associated domain name.",
    "severity":1,
-   "queries":{"\"_taget\" password\"",
-              "\"_taget\" pass\""}
+   "queries":{"\"_taget_\" password\"",
+              "\"_taget_\" pass\""}
 }
 ```
 
