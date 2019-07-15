@@ -7,7 +7,7 @@ A tool to automate dorking of Github/Shodan and a variety of other sources
 Dorky works with a variety of sources, contained in `/sources/` and scans, found in `/scans/`. These scan files are in JSON format and take the following properties:
 
 ## Sources
-- Greymatter
+- GreyHatWarfare
 - Shodan
 - Github Search
 - Gitlab Search
