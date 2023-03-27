@@ -1,5 +1,7 @@
 # Dorky
 
+[![License](https://img.shields.io/badge/license-GPL3-_red.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html) [![Twitter](https://img.shields.io/badge/twitter-@codingo__-blue.svg)](https://twitter.com/codingo_)
+
 Dorky is a command-line tool that searches GitHub and GitLab for matches in organization names, repository names, and usernames based on a list of input words. This tool can be helpful in identifying potential targets for security assessments, finding interesting projects, and discovering new organizations and users on GitHub and GitLab.
 
 ## Example
