@@ -33,13 +33,13 @@ go build -o dorky
 1. Build the Docker image:
 
    ```
-   docker build -t your-image-name .
+   docker build -t dorky .
    ```
 
 2. Run the Docker container:
 
    ```
-   docker run --rm -it -e GITHUB_ACCESS_TOKEN=your-github-token -e GITLAB_ACCESS_TOKEN=your-gitlab-token your-image-name
+   docker run --rm -it -e GITHUB_ACCESS_TOKEN=your-github-token -e GITLAB_ACCESS_TOKEN=your-gitlab-token dorky
    ```
 
    Replace `your-github-token` and `your-gitlab-token` with your GitHub and GitLab access tokens, respectively.
