@@ -123,15 +123,26 @@ func checkScannerError(scanner *bufio.Scanner) {
 }
 
 func searchPlatforms(words map[string]struct{}, cfg config) {
+	ghClient, ghErr := createGithubClient()
+	glClient, glErr := createGitLabClient()
+
+	if ghErr != nil {
+		fmt.Printf("Error creating GitHub client: %s\n", ghErr)
+	}
+
+	if glErr != nil {
+		fmt.Printf("Error creating GitLab client: %s\n", glErr)
+	}
+
 	for word := range words {
-		verbosePrint("Searching GitHub for word: %s\n", word)
-		if !cfg.glFlag {
-			searchGitHub(word, cfg)
+		if !cfg.glFlag && ghErr == nil {
+			verbosePrint("Searching GitHub for word: %s\n", word)
+			searchGitHub(ghClient, word, cfg)
 		}
 
-		verbosePrint("Searching GitLab for word: %s\n", word)
-		if !cfg.ghFlag {
-			searchGitLab(word, cfg)
+		if !cfg.ghFlag && glErr == nil {
+			verbosePrint("Searching GitLab for word: %s\n", word)
+			searchGitLab(glClient, word, cfg)
 		}
 	}
 }
@@ -150,37 +161,40 @@ func removeWhitespace(word string) string {
 	return removedSpaces + "\n" + withHyphens
 }
 
-func searchGitHub(query string, cfg config) {
+func searchGitHub(client *github.Client, query string, cfg config) {
+	if client == nil {
+		return
+	}
+
 	if cfg.oFlag {
-		searchGitHubOrganizations(query, cfg.maxFlag)
+		searchGitHubOrganizations(client, query, cfg.maxFlag)
 	}
 
 	if cfg.rFlag {
-		searchGitHubRepositories(query, cfg.maxFlag)
+		searchGitHubRepositories(client, query, cfg.maxFlag)
 	}
 
 	if cfg.uFlag {
-		searchGitHubUsers(query, cfg.maxFlag)
+		searchGitHubUsers(client, query, cfg.maxFlag)
 	}
 }
 
-func searchGitLab(query string, cfg config) {
+func searchGitLab(client *gitlab.Client, query string, cfg config) {
+	if client == nil {
+		return
+	}
+
 	if cfg.oFlag || cfg.uFlag {
-		searchGitLabGroupsAndUsers(query, cfg.maxFlag)
+		searchGitLabGroupsAndUsers(client, query, cfg.maxFlag)
 	}
 
 	if cfg.rFlag {
-		searchGitLabProjects(query, cfg.maxFlag)
+		searchGitLabProjects(client, query, cfg.maxFlag)
 	}
 }
 
-func searchGitHubOrganizations(query string, maxResults int) {
+func searchGitHubOrganizations(client *github.Client, query string, maxResults int) {
 	ctx := context.Background()
-	client, err := createGithubClient(ctx)
-	if err != nil {
-		fmt.Printf("Error creating GitHub client: %s\n", err)
-		return
-	}
 
 	opt := &github.SearchOptions{ListOptions: github.ListOptions{PerPage: maxResults}}
 	results, _, err := client.Search.Users(ctx, "type:org "+query, opt)
@@ -197,13 +211,8 @@ func searchGitHubOrganizations(query string, maxResults int) {
 	printResults(fmt.Sprintf("GitHub organizations matching '%s'", query), orgLogins)
 }
 
-func searchGitHubRepositories(query string, maxResults int) {
+func searchGitHubRepositories(client *github.Client, query string, maxResults int) {
 	ctx := context.Background()
-	client, err := createGithubClient(ctx)
-	if err != nil {
-		fmt.Printf("Error creating GitHub client: %s\n", err)
-		return
-	}
 
 	opt := &github.SearchOptions{ListOptions: github.ListOptions{PerPage: maxResults}}
 	results, _, err := client.Search.Repositories(ctx, query, opt)
@@ -220,13 +229,8 @@ func searchGitHubRepositories(query string, maxResults int) {
 	printResults(fmt.Sprintf("GitHub repositories matching '%s'", query), repoNames)
 }
 
-func searchGitHubUsers(query string, maxResults int) {
+func searchGitHubUsers(client *github.Client, query string, maxResults int) {
 	ctx := context.Background()
-	client, err := createGithubClient(ctx)
-	if err != nil {
-		fmt.Printf("Error creating GitHub client: %s\n", err)
-		return
-	}
 
 	opt := &github.SearchOptions{ListOptions: github.ListOptions{PerPage: maxResults}}
 	results, _, err := client.Search.Users(ctx, "type:user "+query, opt)
@@ -243,7 +247,8 @@ func searchGitHubUsers(query string, maxResults int) {
 	printResults(fmt.Sprintf("GitHub users matching '%s'", query), userLogins)
 }
 
-func createGithubClient(ctx context.Context) (*github.Client, error) {
+func createGithubClient() (*github.Client, error) {
+	ctx := context.Background()
 	token := os.Getenv("GITHUB_ACCESS_TOKEN")
 	if token == "" {
 		return nil, errors.New("GITHUB_ACCESS_TOKEN environment variable is not set")
@@ -276,13 +281,7 @@ func (t *rateLimitedTransport) RoundTrip(req *http.Request) (*http.Response, err
 	return t.transport.RoundTrip(req)
 }
 
-func searchGitLabGroupsAndUsers(query string, maxResults int) {
-	client, err := createGitLabClient()
-	if err != nil {
-		fmt.Printf("Error creating GitLab client: %s\n", err)
-		return
-	}
-
+func searchGitLabGroupsAndUsers(client *gitlab.Client, query string, maxResults int) {
 	opt := &gitlab.ListGroupsOptions{Search: gitlab.String(query), ListOptions: gitlab.ListOptions{PerPage: maxResults}}
 	groups, _, err := client.Groups.ListGroups(opt)
 	if err != nil {
@@ -315,13 +314,7 @@ func searchGitLabGroupsAndUsers(query string, maxResults int) {
 	}
 }
 
-func searchGitLabProjects(query string, maxResults int) {
-	client, err := createGitLabClient()
-	if err != nil {
-		fmt.Printf("Error creating GitLab client: %s\n", err)
-		return
-	}
-
+func searchGitLabProjects(client *gitlab.Client, query string, maxResults int) {
 	opt := &gitlab.ListProjectsOptions{Search: gitlab.String(query), ListOptions: gitlab.ListOptions{PerPage: maxResults}}
 	projects, _, err := client.Projects.ListProjects(opt)
 	if err != nil {
