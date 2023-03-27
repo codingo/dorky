@@ -33,11 +33,13 @@ var (
 func main() {
 	flag.Parse()
 
+	// Ensure at least one search flag is specified
 	if !(*oFlag || *rFlag || *uFlag) {
 		fmt.Println("At least one search flag (-o, -r, or -u) must be specified")
 		os.Exit(1)
 	}
 
+	// Read input words from stdin and store them in a map to avoid duplicates
 	words := make(map[string]struct{})
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -51,11 +53,13 @@ func main() {
 		}
 	}
 
+	// Check for errors while reading stdin
 	if err := scanner.Err(); err != nil {
 		fmt.Printf("Error reading stdin: %s\n", err)
 		os.Exit(1)
 	}
 
+	// Perform searches on GitHub and/or GitLab for each input word
 	for word := range words {
 		if !*glFlag {
 			searchGitHub(word)
@@ -67,6 +71,7 @@ func main() {
 	}
 }
 
+// cleanWord removes the URL scheme and www. prefix from the input word
 func cleanWord(word string) string {
 	match := urlRegexp.FindStringSubmatch(word)
 	if len(match) > 1 {
@@ -75,6 +80,7 @@ func cleanWord(word string) string {
 	return word
 }
 
+// searchGitHub performs searches on GitHub based on the specified flags
 func searchGitHub(query string) {
 	if *oFlag {
 		searchGitHubOrganizations(query, *maxFlag)
@@ -89,6 +95,7 @@ func searchGitHub(query string) {
 	}
 }
 
+// searchGitLab performs searches on GitLab based on the specified flags
 func searchGitLab(query string) {
 	if *oFlag || *uFlag {
 		searchGitLabGroupsAndUsers(query, *maxFlag)
@@ -99,6 +106,7 @@ func searchGitLab(query string) {
 	}
 }
 
+// searchGitHubOrganizations searches for organizations on GitHub with the given query
 func searchGitHubOrganizations(query string, maxResults int) {
 	ctx := context.Background()
 	client, err := createGithubClient(ctx)
@@ -122,6 +130,7 @@ func searchGitHubOrganizations(query string, maxResults int) {
 	printResults(fmt.Sprintf("GitHub organizations matching '%s'", query), orgLogins)
 }
 
+// searchGitHubRepositories searches for repositories on GitHub with the given query
 func searchGitHubRepositories(query string, maxResults int) {
 	ctx := context.Background()
 	client, err := createGithubClient(ctx)
@@ -145,6 +154,7 @@ func searchGitHubRepositories(query string, maxResults int) {
 	printResults(fmt.Sprintf("GitHub repositories matching '%s'", query), repoNames)
 }
 
+// searchGitHubUsers searches for users on GitHub with the given query
 func searchGitHubUsers(query string, maxResults int) {
 	ctx := context.Background()
 	client, err := createGithubClient(ctx)
@@ -168,6 +178,7 @@ func searchGitHubUsers(query string, maxResults int) {
 	printResults(fmt.Sprintf("GitHub users matching '%s'", query), userLogins)
 }
 
+// createGithubClient creates a new GitHub client with the given context and access token from the environment variable
 func createGithubClient(ctx context.Context) (*github.Client, error) {
 	token := os.Getenv("GITHUB_ACCESS_TOKEN")
 	if token == "" {
@@ -188,6 +199,7 @@ func createGithubClient(ctx context.Context) (*github.Client, error) {
 	return client, nil
 }
 
+// rateLimitedTransport is a custom transport that adds rate limiting to the GitHub API requests
 type rateLimitedTransport struct {
 	transport http.RoundTripper
 	limiter   *rate.Limiter
@@ -201,6 +213,7 @@ func (t *rateLimitedTransport) RoundTrip(req *http.Request) (*http.Response, err
 	return t.transport.RoundTrip(req)
 }
 
+// searchGitLabGroupsAndUsers searches for groups and/or users on GitLab with the given query
 func searchGitLabGroupsAndUsers(query string, maxResults int) {
 	client, err := createGitLabClient()
 	if err != nil {
@@ -240,6 +253,7 @@ func searchGitLabGroupsAndUsers(query string, maxResults int) {
 	}
 }
 
+// searchGitLabProjects searches for projects on GitLab with the given query
 func searchGitLabProjects(query string, maxResults int) {
 	client, err := createGitLabClient()
 	if err != nil {
@@ -262,6 +276,7 @@ func searchGitLabProjects(query string, maxResults int) {
 	printResults(fmt.Sprintf("GitLab projects matching '%s'", query), projectFullPaths)
 }
 
+// createGitLabClient creates a new GitLab client with the access token from the environment variable
 func createGitLabClient() (*gitlab.Client, error) {
 	token := os.Getenv("GITLAB_ACCESS_TOKEN")
 	if token == "" {
@@ -276,6 +291,7 @@ func createGitLabClient() (*gitlab.Client, error) {
 	return client, nil
 }
 
+// printResults displays the search results with a header or in a simple format based on the sFlag
 func printResults(header string, results []string) {
 	if *sFlag {
 		for _, result := range results {
