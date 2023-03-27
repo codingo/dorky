@@ -37,12 +37,12 @@ export GITLAB_ACCESS_TOKEN=your-gitlab-access-token
 go build -o dorky
 ```
 
-## Requirements
+## Docker Instructions
+
+### Requirements
 
 - Docker
 - GITHUB_ACCESS_TOKEN and GITLAB_ACCESS_TOKEN environment variables
-
-## Docker Instructions
 
 1. Build the Docker image:
 
