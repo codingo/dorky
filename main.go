@@ -53,7 +53,7 @@ func main() {
 	validateFlags(flags)
 
 	verbosePrint("Reading and cleaning words...\n")
-	words := readAndCleanWords(flags)
+	words := readAndCleanWords(flags, flag.Args())
 	verbosePrint("Words cleaned.\n")
 
 	verbosePrint("Searching platforms...\n")
@@ -75,15 +75,22 @@ func verbosePrint(format string, a ...interface{}) {
 	}
 }
 
-func readAndCleanWords(cfg config) map[string]struct{} {
+func readAndCleanWords(cfg config, args []string) map[string]struct{} {
 	words := make(map[string]struct{})
-	scanner := bufio.NewScanner(os.Stdin)
 
-	for scanner.Scan() {
-		word := strings.TrimSpace(scanner.Text())
-		processWord(word, words, cfg)
+	if len(args) > 0 {
+		for _, word := range args {
+			processWord(word, words, cfg)
+		}
+	} else {
+		scanner := bufio.NewScanner(os.Stdin)
+
+		for scanner.Scan() {
+			word := strings.TrimSpace(scanner.Text())
+			processWord(word, words, cfg)
+		}
+		checkScannerError(scanner)
 	}
-	checkScannerError(scanner)
 
 	return words
 }
