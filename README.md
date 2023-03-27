@@ -1,65 +1,47 @@
-# dorky
-A tool to automate dorking of Github/Shodan and a variety of other sources
+# Dorky
 
+Dorky is a command-line tool that searches GitHub and GitLab for matches in organization names, repository names, and usernames based on a list of input words.
 
-# Idea
+## Installation
 
-Dorky works with a variety of sources, contained in `/sources/` and scans, found in `/scans/`. These scan files are in JSON format and take the following properties:
-
-## Sources
-- GreyHatWarfare
-- Shodan
-- Github Search
-- Gitlab Search
-
-## Scans
-Scans are stored as JSON, they contain the following properties:
-
-| Item     | Details                                                                                             |
-|----------|-----------------------------------------------------------------------------------------------------|
-| sources  | array of sources that this module will run against                                                  |
-| query    | the query to use for this source, where _target_ is replaced by the target name and _port_ the port |
-| severity | the severity level for findings from informational to high                                          |
-
-An example scan would be:
+1. Clone the repository:
 
 ```
-{  
-   "sources":[  
-      "gitlab",
-      "github"
-   ],
-   "title":"Direct Credentials",
-   "description":"Find credentials against an associated domain name.",
-   "severity":1,
-   "queries":{"\"_taget_\" password\"",
-              "\"_taget_\" pass\""}
-}
+git clone https://github.com/username/dorky.git
 ```
 
-## Command Line
-
-The command line takes the following arguments:
-
-| Argument     | Description                      |
-|--------------|----------------------------------|
-| -s -severity | The severity level to run        |
-| -t           | The target to run a scan against |
-| -o           | File to save output to           |
-
-# Examples
-
-Using the above JSON example, and the command line input, an example search would be:
+2. Set your GitHub and/or GitLab access tokens as environment variables:
 
 ```
-dorky -t example.com -severity 1
+export GITHUB_ACCESS_TOKEN=your-github-access-token
+export GITLAB_ACCESS_TOKEN=your-gitlab-access-token
 ```
 
-This would run all sources in `/sources/` that have a severity of 1 or higher and output the results:
+3. Build the Dorky tool:
 
 ```
-DORKY - By hakluke, sml and codingo
-2 Dorks with results:
-[Direct Credentials] https://github.com/example-link
-[Direct Credentials] https://gitlab.com/example-link
+go build -o dorky
 ```
+
+## Usage
+
+Pipe a list of words to the Dorky tool and use the appropriate flags to specify the search categories and platforms:
+
+```
+cat wordlist.txt | ./dorky -uro -gh
+```
+
+Available flags:
+
+- `-o`: Search for organization names (or groups in GitLab)
+- `-r`: Search for repository names (or projects in GitLab)
+- `-u`: Search for username matches
+- `-max`: Set the maximum number of search results per category (default: 10)
+- `-c`: Clean input URLs, turning them into words before performing searches
+- `-gh`: Search only GitHub
+- `-gl`: Search only GitLab
+
+By default, the tool searches both GitHub and GitLab based on the provided access tokens. If both tokens are set, both platforms will be searched. If only one token is set, only that platform will be searched.
+```
+
+With these updates, the Dorky tool now supports cleaning URLs, de-duplication, and searching both GitHub and GitLab. The error handling and code patterns have also been improved. Feel free to use this version as a starting point for your own implementation and make any additional changes as needed.
