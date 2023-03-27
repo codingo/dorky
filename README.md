@@ -2,6 +2,20 @@
 
 Dorky is a command-line tool that searches GitHub and GitLab for matches in organization names, repository names, and usernames based on a list of input words.
 
+## Example
+
+```
+echo "codingo\ncodingo dot com" | dorky -o -r -u -c
+```
+
+This will search for organization names, repository names, and usernames on both GitHub and GitLab based on the cleaned input words:
+
+```
+codingo
+codingodotcom
+codingo-dot-com
+```
+
 ## Installation
 
 1. Clone the repository:
@@ -64,3 +78,11 @@ Available flags:
 - `-s`: Simple output style for piping to another tool
 
 By default, the tool searches both GitHub and GitLab based on the provided access tokens. If both tokens are set, both platforms will be searched. If only one token is set, only that platform will be searched.
+
+## Dependencies
+
+- google/go-github/v38
+- xanzy/go-gitlab
+- golang.org/x/oauth2
+- golang.org/x/time/rate
+```
