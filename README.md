@@ -40,8 +40,6 @@ Available flags:
 - `-c`: Clean input URLs, turning them into words before performing searches
 - `-gh`: Search only GitHub
 - `-gl`: Search only GitLab
+- `-s`: Simple output style for piping to another tool
 
 By default, the tool searches both GitHub and GitLab based on the provided access tokens. If both tokens are set, both platforms will be searched. If only one token is set, only that platform will be searched.
-```
-
-With these updates, the Dorky tool now supports cleaning URLs, de-duplication, and searching both GitHub and GitLab. The error handling and code patterns have also been improved. Feel free to use this version as a starting point for your own implementation and make any additional changes as needed.
