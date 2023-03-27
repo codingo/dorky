@@ -1,10 +1,10 @@
 # Dorky
 
-Dorky is a command-line tool that searches GitHub and GitLab for matches in organization names, repository names, and usernames based on a list of input words.
+Dorky is a command-line tool that searches GitHub and GitLab for matches in organization names, repository names, and usernames based on a list of input words. This tool can be helpful in identifying potential targets for security assessments, finding interesting projects, and discovering new organizations and users on GitHub and GitLab.
 
 ## Example
 
-```
+```bash
 echo "codingo\ncodingo dot com" | dorky -o -r -u -c
 ```
 
@@ -20,20 +20,20 @@ codingo-dot-com
 
 1. Clone the repository:
 
-```
+```bash
 git clone https://github.com/username/dorky.git
 ```
 
 2. Set your GitHub and/or GitLab access tokens as environment variables:
 
-```
+```bash
 export GITHUB_ACCESS_TOKEN=your-github-access-token
 export GITLAB_ACCESS_TOKEN=your-gitlab-access-token
 ```
 
 3. Build the Dorky tool:
 
-```
+```bash
 go build -o dorky
 ```
 
@@ -46,13 +46,13 @@ go build -o dorky
 
 1. Build the Docker image:
 
-   ```
+   ```bash
    docker build -t dorky .
    ```
 
 2. Run the Docker container:
 
-   ```
+   ```bash
    docker run --rm -it -e GITHUB_ACCESS_TOKEN=your-github-token -e GITLAB_ACCESS_TOKEN=your-gitlab-token dorky
    ```
 
@@ -76,6 +76,7 @@ Available flags:
 - `-gh`: Search only GitHub
 - `-gl`: Search only GitLab
 - `-s`: Simple output style for piping to another tool
+- `-v`: Enable verbose mode for more detailed output
 
 By default, the tool searches both GitHub and GitLab based on the provided access tokens. If both tokens are set, both platforms will be searched. If only one token is set, only that platform will be searched.
 
@@ -85,4 +86,3 @@ By default, the tool searches both GitHub and GitLab based on the provided acces
 - xanzy/go-gitlab
 - golang.org/x/oauth2
 - golang.org/x/time/rate
-```
