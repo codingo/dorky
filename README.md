@@ -23,7 +23,7 @@ codingo-dot-com
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/username/dorky.git
+git clone https://github.com/codingo/dorky.git
 ```
 
 2. Set your GitHub and/or GitLab access tokens as environment variables:
