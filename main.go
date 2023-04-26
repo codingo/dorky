@@ -18,34 +18,33 @@ import (
 )
 
 type config struct {
-	oFlag        bool
-	rFlag        bool
-	uFlag        bool
+	orgFlag      bool
+	repoFlag     bool
+	userFlag     bool
 	maxFlag      int
-	cFlag        bool
-	ghFlag       bool
-	glFlag       bool
-	sFlag        bool
-	vFlag        bool
+	cleanFlag    bool
+	ghOnlyFlag   bool
+	glOnlyFlag   bool
+	simpleFlag   bool
+	verboseFlag  bool
 }
 
 var (
-	flags = config{}
-	urlRegexp    = regexp.MustCompile(`^https?://(?:www\.)?([^/]+)`)
-	spaceRegexp  = regexp.MustCompile(`\s+`)
-	wordPatterns = []string{"", "-", ""}
+	flags       = config{}
+	urlRegexp   = regexp.MustCompile(`^https?://(?:www\.)?([^/]+)`)
+	spaceRegexp = regexp.MustCompile(`\s+`)
 )
 
 func init() {
-	flag.BoolVar(&flags.oFlag, "o", false, "search for organization names")
-	flag.BoolVar(&flags.rFlag, "r", false, "search for repository names")
-	flag.BoolVar(&flags.uFlag, "u", false, "search for username matches")
+	flag.BoolVar(&flags.orgFlag, "o", false, "search for organization names")
+	flag.BoolVar(&flags.repoFlag, "r", false, "search for repository names")
+	flag.BoolVar(&flags.userFlag, "u", false, "search for username matches")
 	flag.IntVar(&flags.maxFlag, "max", 10, "maximum search results per category")
-	flag.BoolVar(&flags.cFlag, "c", false, "clean input URLs")
-	flag.BoolVar(&flags.ghFlag, "gh", false, "search only GitHub")
-	flag.BoolVar(&flags.glFlag, "gl", false, "search only GitLab")
-	flag.BoolVar(&flags.sFlag, "s", false, "simple output style for piping to another tool")
-	flag.BoolVar(&flags.vFlag, "v", false, "enable verbose mode")
+	flag.BoolVar(&flags.cleanFlag, "c", false, "clean input URLs")
+	flag.BoolVar(&flags.ghOnlyFlag, "gh", false, "search only GitHub")
+	flag.BoolVar(&flags.glOnlyFlag, "gl", false, "search only GitLab")
+	flag.BoolVar(&flags.simpleFlag, "s", false, "simple output style for piping to another tool")
+	flag.BoolVar(&flags.verboseFlag, "v", false, "enable verbose mode")
 }
 
 func main() {
@@ -62,7 +61,7 @@ func main() {
 }
 
 func validateFlags(cfg config) {
-	if !(cfg.oFlag || cfg.rFlag || cfg.uFlag) {
+	if !(cfg.orgFlag || cfg.repoFlag || cfg.userFlag) {
 		fmt.Println("At least one search flag (-o, -r, or -u) must be specified")
 		os.Exit(1)
 	}
@@ -70,7 +69,7 @@ func validateFlags(cfg config) {
 }
 
 func verbosePrint(format string, a ...interface{}) {
-	if flags.vFlag {
+	if flags.verboseFlag {
 		fmt.Printf(format, a...)
 	}
 }
@@ -96,7 +95,7 @@ func readAndCleanWords(cfg config, args []string) map[string]struct{} {
 }
 
 func processWord(word string, words map[string]struct{}, cfg config) {
-	if cfg.cFlag {
+	if cfg.cleanFlag {
 		word = cleanWord(word)
 	}
 
@@ -123,7 +122,7 @@ func checkScannerError(scanner *bufio.Scanner) {
 }
 
 func searchPlatforms(words map[string]struct{}, cfg config) {
-	ghClient, ghErr := createGithubClient()
+	ghClient, ghErr := createGitHubClient()
 	glClient, glErr := createGitLabClient()
 
 	if ghErr != nil {
@@ -135,12 +134,12 @@ func searchPlatforms(words map[string]struct{}, cfg config) {
 	}
 
 	for word := range words {
-		if !cfg.glFlag && ghErr == nil {
+		if !cfg.glOnlyFlag && ghErr == nil {
 			verbosePrint("Searching GitHub for word: %s\n", word)
 			searchGitHub(ghClient, word, cfg)
 		}
 
-		if !cfg.ghFlag && glErr == nil {
+		if !cfg.ghOnlyFlag && glErr == nil {
 			verbosePrint("Searching GitLab for word: %s\n", word)
 			searchGitLab(glClient, word, cfg)
 		}
@@ -166,15 +165,15 @@ func searchGitHub(client *github.Client, query string, cfg config) {
 		return
 	}
 
-	if cfg.oFlag {
+	if cfg.orgFlag {
 		searchGitHubOrganizations(client, query, cfg.maxFlag)
 	}
 
-	if cfg.rFlag {
+	if cfg.repoFlag {
 		searchGitHubRepositories(client, query, cfg.maxFlag)
 	}
 
-	if cfg.uFlag {
+	if cfg.userFlag {
 		searchGitHubUsers(client, query, cfg.maxFlag)
 	}
 }
@@ -184,11 +183,11 @@ func searchGitLab(client *gitlab.Client, query string, cfg config) {
 		return
 	}
 
-	if cfg.oFlag || cfg.uFlag {
+	if cfg.orgFlag || cfg.userFlag {
 		searchGitLabGroupsAndUsers(client, query, cfg.maxFlag)
 	}
 
-	if cfg.rFlag {
+	if cfg.repoFlag {
 		searchGitLabProjects(client, query, cfg.maxFlag)
 	}
 }
@@ -247,7 +246,7 @@ func searchGitHubUsers(client *github.Client, query string, maxResults int) {
 	printResults(fmt.Sprintf("GitHub users matching '%s'", query), userLogins)
 }
 
-func createGithubClient() (*github.Client, error) {
+func createGitHubClient() (*github.Client, error) {
 	ctx := context.Background()
 	token := os.Getenv("GITHUB_ACCESS_TOKEN")
 	if token == "" {
@@ -289,7 +288,7 @@ func searchGitLabGroupsAndUsers(client *gitlab.Client, query string, maxResults 
 		return
 	}
 
-	if flags.oFlag {
+	if flags.orgFlag {
 		groupFullPaths := make([]string, len(groups))
 		for i, group := range groups {
 			groupFullPaths[i] = group.FullPath
@@ -304,7 +303,7 @@ func searchGitLabGroupsAndUsers(client *gitlab.Client, query string, maxResults 
 		return
 	}
 
-	if flags.uFlag {
+	if flags.userFlag {
 		userUsernames := make([]string, len(users))
 		for i, user := range users {
 			userUsernames[i] = user.Username
@@ -345,7 +344,7 @@ func createGitLabClient() (*gitlab.Client, error) {
 }
 
 func printResults(header string, results []string) {
-	if flags.sFlag {
+	if flags.simpleFlag {
 		for _, result := range results {
 			fmt.Println(result)
 		}
