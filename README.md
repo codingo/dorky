@@ -33,7 +33,13 @@ export GITHUB_ACCESS_TOKEN=your-github-access-token
 export GITLAB_ACCESS_TOKEN=your-gitlab-access-token
 ```
 
-3. Build the Dorky tool:
+3. Pull the dependencies:
+
+```
+go get
+```
+
+4. Build the Dorky tool:
 
 ```bash
 go build -o dorky
